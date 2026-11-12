@@ -3,7 +3,7 @@ import "./Add.css";
 import { assets } from "../../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
-const Add = () => {
+const Add = ({token, setToken}) => {
   const url = import.meta.env.VITE_BACKEND_URL;
 
   const [image, setImage] = useState(false);
@@ -30,8 +30,7 @@ const Add = () => {
     formData.append("category", data.category);
     formData.append("image", image);
 
-    const response = await axios.post(url + "/api/food/add", formData);
-    if (response.data.success) {
+    const response = await axios.post(url + "/api/food/add", formData, {headers:{token}});    if (response.data.success) {
       setData({
         name: "",
         description: "",
@@ -41,8 +40,12 @@ const Add = () => {
       setImage(false);
 
       toast.success(response.data.message);
-    } else {
+    }
+      else {
       toast.error(response.data.message);
+      if (response.data.message.includes("Not authorized") || response.data.message.includes("Invalid or expired")) {
+        setToken("");
+      }
     }
   };
 

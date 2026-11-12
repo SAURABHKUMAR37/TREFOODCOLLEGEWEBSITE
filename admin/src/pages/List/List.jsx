@@ -3,7 +3,7 @@ import "./List.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const List = () => {
+const List = ({token, setToken}) => {
   const url = import.meta.env.VITE_BACKEND_URL;
 
   const [list, setList] = useState([]);
@@ -19,14 +19,17 @@ const List = () => {
 
 const removeFood=async(foodId)=>{
 
-  const response=await axios.post(url+"/api/food/remove",{id:foodId})
+  const response=await axios.post(url+"/api/food/remove",{id:foodId},{headers:{token}})
   await fetchList();
   if(response.data.success)
   {
     toast.success(response.data.message)
   }
   else{
-    toast.error("Error")
+    toast.error(response.data.message)
+    if (response.data.message.includes("Not authorized") || response.data.message.includes("Invalid or expired")) {
+      setToken("");
+    }
   }
 }
 

@@ -7,16 +7,18 @@ import { useEffect } from "react";
 import axios from "axios";
 import { assets } from "../../assets/assets";
 
-const Orders = () => {
+const Orders = ({token, setToken}) => {
   const [orders, setOrders] = useState([]);
 
-  const fetchAllOrders = async () => {
-    const response = await axios.get(url + "/api/order/list");
+    const fetchAllOrders = async () => {
+    const response = await axios.get(url + "/api/order/list", {headers:{token}});
     if (response.data.success) {
       setOrders(response.data.data);
-      console.log(response.data.data);
     } else {
-      toast.error("Error");
+      toast.error(response.data.message);
+      if (response.data.message.includes("Not authorized") || response.data.message.includes("Invalid or expired")) {
+        setToken("");
+      }
     }
   };
 
@@ -24,14 +26,15 @@ const statusHandler=async(event,orderId)=>{
   const response= await axios.post(url+'/api/order/update',{
     orderId,
     status:event.target.value
-  })
+  },{headers:{token}})
   if(response.data.success)
   {
     await fetchAllOrders();
   }
-
+  else{
+    toast.error(response.data.message);
+  }
 }
-
   useEffect(() => {
     fetchAllOrders();
   }, []);

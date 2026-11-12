@@ -12,3 +12,23 @@
 .navbar .profile{
   width: 40px;
 }
+
+.navbar .navbar-right{
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.navbar .logout-btn{
+  background: tomato;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.navbar .logout-btn:hover{
+  background: #e5543a;
+}
