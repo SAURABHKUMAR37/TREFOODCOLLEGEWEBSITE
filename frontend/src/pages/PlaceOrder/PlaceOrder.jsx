@@ -3,8 +3,11 @@ import './PlaceOrder.css'
 import { StoreContext } from '../../context/StoreContext'
 const url = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 const PlaceOrder = () => {
+  const navigate = useNavigate();
+
   const{getTotalCartAmount,token,food_list,cartItems}=useContext(StoreContext);
   const [data,setData]=useState({
     firstName:"",
@@ -41,6 +44,8 @@ const initPay = (order) => {
 
       if (data.success) {
         alert("Payment Successful");
+        navigate('/myorders');
+
       } else {
         alert("Payment Failed");
       }
@@ -75,6 +80,16 @@ let response = await axios.post(
       initPay(response.data.order);
    }
   }
+  useEffect(()=>{
+    if(!token)
+    {
+      navigate("/cart")
+    }
+    else if(getTotalCartAmount()===0){
+            navigate("/cart")
+
+    }
+  },[token])
  
   return (
     <form onSubmit={placeOrder} className='place-order'>
