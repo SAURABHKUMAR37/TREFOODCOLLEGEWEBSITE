@@ -1,28 +1,100 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import './PlaceOrder.css'
 import { StoreContext } from '../../context/StoreContext'
+const url = import.meta.env.VITE_BACKEND_URL;
+import axios from "axios";
 
 const PlaceOrder = () => {
-  const{getTotalCartAmount}=useContext(StoreContext);
+  const{getTotalCartAmount,token,food_list,cartItems}=useContext(StoreContext);
+  const [data,setData]=useState({
+    firstName:"",
+    lastName:"",
+    email:"",
+    city:"",
+    street:"",
+    state:"",
+    zipcode:"",
+    country:"",
+    phone:""
+  })
+  const onChangeHandler=(e)=>{
+    const name=e.target.name;
+    const value=e.target.value;
+    setData(data=>({...data,[name]:value}))
+
+  }
+const initPay = (order) => {
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: order.amount,
+    currency: order.currency,
+    name: "Food Delivery",
+    description: "Order Payment",
+    order_id: order.id,
+
+    handler: async (response) => {
+      const { data } = await axios.post(
+        url + "/api/order/verifyRazorpay",
+        response,
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        alert("Payment Successful");
+      } else {
+        alert("Payment Failed");
+      }
+    }
+  };
+  const rzp = new window.Razorpay(options);
+rzp.open();
+};
+
+  const placeOrder=async(e)=>{
+    e.preventDefault();
+    let orderItems=[];
+    food_list.map((item)=>{
+      if(cartItems[item._id]>0)
+      {
+        let itemInfo=item;
+        itemInfo["quantity"]=cartItems[item._id]
+        orderItems.push(itemInfo)
+      }
+    })
+   let orderData={
+    address:data,
+    items:orderItems,
+    amount:getTotalCartAmount()+30
+   }
+let response = await axios.post(
+  url + "/api/order/razorpay",
+  orderData,
+  { headers: { token } }
+);   if(response.data.success)
+   {
+      initPay(response.data.order);
+   }
+  }
+ 
   return (
-    <form className='place-order'>
+    <form onSubmit={placeOrder} className='place-order'>
       <div className="place-order-left">
             <p className="title">Delivery Information</p>
             <div className="multi-fields">
-                  <input type="text" placeholder='First Name' />
-                  <input type="text"  placeholder='Last Name'/>
+                  <input required name="firstName" onChange={onChangeHandler} value={data.firstName} type="text" placeholder='First Name' />
+                  <input required name="lastName" onChange={onChangeHandler} value={data.lastName} type="text"  placeholder='Last Name'/>
             </div>
-           <input type="text" placeholder='Email Address'/>
-           <input type="text" placeholder='Street' /> 
+           <input required name="email" onChange={onChangeHandler} value={data.email} type="text" placeholder='Email Address'/>
+           <input  required name="street" onChange={onChangeHandler} value={data.street} type="text" placeholder='Street' /> 
            <div className="multi-fields">
-                  <input type="text" placeholder='city' />
-                  <input type="text"  placeholder='state'/>
+                  <input required name="city" onChange={onChangeHandler} value={data.city} type="text" placeholder='city' />
+                  <input required name="state" onChange={onChangeHandler} value={data.state} type="text"  placeholder='state'/>
             </div>
             <div className="multi-fields">
-                  <input type="text" placeholder='Zip code' />
-                  <input type="text"  placeholder='country'/>
+                  <input required name="zipcode" onChange={onChangeHandler} value={data.zipcode} type="text" placeholder='Zip code' />
+                  <input required name="country" onChange={onChangeHandler} value={data.country} type="text"  placeholder='country'/>
             </div>
-            <input type='text' placeholder='phone'/>
+            <input required name="phone" onChange={onChangeHandler} value={data.phone} type='text' placeholder='phone'/>
       </div>
 
 
@@ -47,7 +119,7 @@ const PlaceOrder = () => {
             </div>
             
           </div>
-          <button >PROCEED TO PAYMENT</button>
+          <button  type="submit" >PROCEED TO PAYMENT</button>
         </div>
 
 
