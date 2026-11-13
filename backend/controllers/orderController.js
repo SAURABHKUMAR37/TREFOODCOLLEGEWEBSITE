@@ -1,152 +1,211 @@
-
 import "dotenv/config";
+import mongoose from "mongoose";
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Razorpay from "razorpay";
-
+import foodModel from "../models/foodModel.js";
 const currency = "inr";
 
 const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // 1. Place order using Razorpay
-const placeOrderRazorpay = async (req, res,next) => {
-    try {
-        const { userId, items, amount, address } = req.body;
-        if (!items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({
+const placeOrderRazorpay = async (req, res, next) => {
+  try {
+    const { userId, items, address } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
         success: false,
-        message: "Order items are required"
-    });
-}
-if (items.some(item =>
-    !item._id ||
-    !Number.isInteger(Number(item.quantity)) ||
-    Number(item.quantity) <= 0
-)) {
-    return res.status(400).json({
-        success: false,
-        message: "Invalid order items"
-    });
-}
-
-if (!address) {
-    return res.status(400).json({
-        success: false,
-        message: "Delivery address is required"
-    });
-}
-if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) {
-    return res.status(400).json({
-        success: false,
-        message: "Invalid order amount"
-    });
-}
-
-        const orderData = {
-            userId,
-            items,
-            amount,
-            address,
-            payment: false,
-            date: Date.now()
-        };
-
-        const newOrder = new orderModel(orderData);
-        await newOrder.save();
-
-        const options = {
-            amount: Math.round(amount * 100),
-            currency: currency.toUpperCase(),
-            receipt: newOrder._id.toString()
-        };
-
-        const order = await razorpayInstance.orders.create(options);
-
-        res.json({
-            success: true,
-            order
-        });
-
-    } catch (error) {
-         next(error);
+        message: "Order items are required",
+      });
     }
+    if (
+      items.some(
+        (item) =>
+          !item._id ||
+          !Number.isInteger(Number(item.quantity)) ||
+          Number(item.quantity) <= 0,
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order items",
+      });
+    }
+    const foodIds = items.map((item) => item._id);
+
+    const foodItems = await foodModel.find({
+      _id: { $in: foodIds },
+    });
+    if (foodItems.length !== items.length) {
+      return res.status(400).json({
+        success: false,
+        message: "One or more food items do not exist",
+      });
+    }
+    const verifiedItems = items.map((item) => {
+      const food = foodItems.find(
+        (food) => food._id.toString() === item._id.toString(),
+      );
+
+      return {
+        foodId: food._id,
+        name: food.name,
+        price: food.price,
+        quantity: Number(item.quantity),
+        image: food.image,
+      };
+    });
+
+    let calculatedAmount = 0;
+
+    for (const item of items) {
+      const food = foodItems.find(
+        (food) => food._id.toString() === item._id.toString(),
+      );
+
+      calculatedAmount += food.price * Number(item.quantity);
+    }
+    calculatedAmount += 30;
+
+    if (!address) {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery address is required",
+      });
+    }
+
+    const orderData = {
+      userId,
+      items: verifiedItems,
+      amount: calculatedAmount,
+      address,
+      payment: false,
+      date: Date.now(),
+    };
+
+    const newOrder = new orderModel(orderData);
+    await newOrder.save();
+
+    const options = {
+      amount: Math.round(calculatedAmount * 100),
+      currency: currency.toUpperCase(),
+      receipt: newOrder._id.toString(),
+    };
+
+    const order = await razorpayInstance.orders.create(options);
+
+    res.json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // 2. Verify Razorpay payment
-const verifyRazorpay = async (req, res,next) => {
-    try {
-        const { userId, razorpay_order_id } = req.body;
+const verifyRazorpay = async (req, res, next) => {
+  try {
+    const { userId, razorpay_order_id } = req.body;
 
-        const orderInfo = await razorpayInstance.orders.fetch(
-            razorpay_order_id
-        );
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    const existingOrder = await orderModel.findOne({
+      _id: orderInfo.receipt,
+      userId: userId,
+    });
 
-        if (orderInfo.status === "paid") {
-
-            await orderModel.findByIdAndUpdate(
-                orderInfo.receipt,
-                { payment: true }
-            );
-
-            await userModel.findByIdAndUpdate(userId, {
-                cartData: {}
-            });
-
-            res.json({
-                success: true,
-                message: "Payment Successful"
-            });
-
-        } else {
-            res.json({
-                success: false,
-                message: "Payment Failed"
-            });
-        }
-
-    } catch (error) {
-        next(error);
+    if (!existingOrder) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access this order",
+      });
     }
+
+    if (orderInfo.status === "paid") {
+      await orderModel.findByIdAndUpdate(orderInfo.receipt, { payment: true });
+
+      await userModel.findByIdAndUpdate(userId, {
+        cartData: {},
+      });
+
+      res.json({
+        success: true,
+        message: "Payment Successful",
+      });
+    } else {
+      res.json({
+        success: false,
+        message: "Payment Failed",
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 //user orders for frontend
-const userOrders=async(req,res,next)=>{
-    try {
-        const orders=await orderModel.find({userId:req.body.userId})
-        res.json({success:true,data:orders})
-    } catch (error) {
-         next(error);
-    }
-
-}
+const userOrders = async (req, res, next) => {
+  try {
+    const orders = await orderModel.find({ userId: req.body.userId });
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    next(error);
+  }
+};
 
 //listing order for admin panel
 
-const listOrders=async(req,res,next)=>{
-
-    try {
-        const orders=await orderModel.find({});
-        res.json({success:true,data:orders})
-    } catch (error) {
- next(error);    }
-
-}
+const listOrders = async (req, res, next) => {
+  try {
+    const orders = await orderModel.find({});
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    next(error);
+  }
+};
 
 //api for updating orderstatus
-const updateStatus=async(req,res,next)=>{
-    try {
-        await orderModel.findByIdAndUpdate(req.body.orderId,{status:req.body.status})
-        res.json({success:true,message:"Status updated"})
-        
-    } catch (error) {
- next(error);    }
+const allowedStatuses = ["Food Processing", "Out for delivery", "Delivered"];
 
-}
+const updateStatus = async (req, res, next) => {
+  try {
+    const { orderId, status } = req.body;
+
+    if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid order ID is required",
+      });
+    }
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order status",
+      });
+    }
+
+    const order = await orderModel.findByIdAndUpdate(orderId, { status });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.json({ success: true, message: "Status updated" });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export {
-    placeOrderRazorpay,
-    verifyRazorpay,userOrders,listOrders,
-    updateStatus
+  placeOrderRazorpay,
+  verifyRazorpay,
+  userOrders,
+  listOrders,
+  updateStatus,
 };
