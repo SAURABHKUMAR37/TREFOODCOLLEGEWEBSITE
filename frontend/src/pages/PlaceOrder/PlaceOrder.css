@@ -1,20 +1,24 @@
-.place-order{
+
+.place-order {
     display: flex;
     align-items: start;
     justify-content: space-between;
     gap: 50px;
     margin-top: 100px;
 }
-.place-order-left{
+
+.place-order-left {
     width: 100%;
-    max-width: max(30%,500px);
+    max-width: max(30%, 500px);
 }
-.place-order-left .title{
+
+.place-order-left .title {
     font-size: 30px;
     font-weight: 600;
     margin-bottom: 50px;
 }
-.place-order-left input{
+
+.place-order-left input {
     margin-bottom: 15px;
     width: 100%;
     padding: 10px;
@@ -22,15 +26,95 @@
     border-radius: 4px;
     outline-color: tomato;
 }
-.place-order-left .multi-fields{
+
+.place-order-left .multi-fields {
     display: flex;
     gap: 10px;
 }
-.place-order-right{
+
+.place-order-right {
     width: 100%;
-    max-width: max(40%,500px);
+    max-width: max(40%, 500px);
 }
-.place-order .cart-total button{
+
+.place-order .cart-total button {
     margin-top: 30px;
 }
 
+/* Buy Now product details */
+.buy-now-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.buy-now-details p {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+}
+
+
+.buy-now-quantity {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(6px, 2vw, 15px);
+    padding: 5px 8px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    background: #fff;
+    flex-shrink: 0;
+    max-width: 100%;
+}
+
+.buy-now-quantity button {
+    width: clamp(25px, 7vw, 32px);
+    height: clamp(25px, 7vw, 32px);
+    flex-shrink: 0;
+    border: 1px solid #eeeeee;
+    border-radius: 5px;
+    background: #fafafa;
+    color: #333;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.buy-now-quantity button:hover {
+    background: tomato;
+    color: white;
+    border-color: tomato;
+}
+
+.buy-now-quantity span {
+    min-width: 18px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+@media (max-width: 480px) {
+    .buy-now-details {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .buy-now-details p {
+        font-size: 14px;
+    }
+
+    .buy-now-quantity {
+        gap: 6px;
+        padding: 4px 6px;
+    }
+}

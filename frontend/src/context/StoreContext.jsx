@@ -10,6 +10,7 @@ const StoreContextProvider = (props) => {
 
   const [food_list, setFoodlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [priceRange, setPriceRange] = useState("All");
   const addToCart =async (itemId) => {
     if (!cartItems[itemId]) {
       setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
@@ -78,6 +79,8 @@ const StoreContextProvider = (props) => {
     setToken,
      searchTerm,
     setSearchTerm,
+    priceRange, 
+    setPriceRange
   };
   return (
     <StoreContext.Provider value={contextValue}>

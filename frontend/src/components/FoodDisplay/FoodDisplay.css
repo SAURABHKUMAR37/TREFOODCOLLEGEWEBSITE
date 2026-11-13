@@ -14,3 +14,35 @@
     gap: 30px;
     row-gap: 50px;
 }
+.price-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.price-filter label {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.price-filter select {
+    padding: 9px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+    background: white;
+    font-size: 14px;
+}
+
+.price-filter select:focus {
+    border-color: tomato;
+}
+
+@media (max-width: 600px) {
+    .price-filter {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}

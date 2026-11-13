@@ -23,29 +23,32 @@ const LoginPopup = ({setShowLogin}) => {
         setData(data=>({...data,[name]:value}))
     }
 
-    const onLogin=async(e)=>{
-        e.preventDefault();
-        let newUrl=url;
-        if(currState==="Login")
-        {
-            newUrl+="/api/user/login";
-        }
-        else
-        {
-            newUrl+="/api/user/register"
-        }
-        const response=await axios.post(newUrl,data)
-        if(response.data.success)
-        {
-            setToken(response.data.token);
-            localStorage.setItem("token",response.data.token)
-            setShowLogin(false)
-        }
-        else{
-            alert(response.data.message)
-        }
-
+    const onLogin = async (e) => {
+    e.preventDefault();
+    let newUrl = url;
+    if (currState === "Login") {
+        newUrl += "/api/user/login";
+    } else {
+        newUrl += "/api/user/register";
     }
+
+    try {
+        const response = await axios.post(newUrl, data);
+        if (response.data.success) {
+            setToken(response.data.token);
+            localStorage.setItem("token", response.data.token);
+            setShowLogin(false);
+        } else {
+            alert(response.data.message);
+        }
+    } catch (error) {
+        if (error.response) {
+            alert(error.response.data.message || "Something went wrong");
+        } else {
+            alert("Cannot connect to server. Check that the backend is running.");
+        }
+    }
+};
 
   return (
     <div className='login-popup'>
@@ -56,7 +59,7 @@ const LoginPopup = ({setShowLogin}) => {
             </div>
             <div className="login-popup-inputs">
                {currState==='Login'?'':<input name='name' onChange={onchangeHandler} value={data.name} type="text" placeholder='Your name' required/>} 
-                <input name='email' onChange={onchangeHandler} value={data.email} type="email" placeholder='Your email' required/>
+                <input name='email' onChange={onchangeHandler} value={data.email} type="email" placeholder='Your email'  required/>
                 <input  name='password' onChange={onchangeHandler} value={data.password} type="password" placeholder='Your password' required/>
 
             </div>
