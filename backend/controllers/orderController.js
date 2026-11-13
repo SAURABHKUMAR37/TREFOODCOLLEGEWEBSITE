@@ -12,9 +12,38 @@ const razorpayInstance = new Razorpay({
 });
 
 // 1. Place order using Razorpay
-const placeOrderRazorpay = async (req, res) => {
+const placeOrderRazorpay = async (req, res,next) => {
     try {
         const { userId, items, amount, address } = req.body;
+        if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({
+        success: false,
+        message: "Order items are required"
+    });
+}
+if (items.some(item =>
+    !item._id ||
+    !Number.isInteger(Number(item.quantity)) ||
+    Number(item.quantity) <= 0
+)) {
+    return res.status(400).json({
+        success: false,
+        message: "Invalid order items"
+    });
+}
+
+if (!address) {
+    return res.status(400).json({
+        success: false,
+        message: "Delivery address is required"
+    });
+}
+if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    return res.status(400).json({
+        success: false,
+        message: "Invalid order amount"
+    });
+}
 
         const orderData = {
             userId,
@@ -42,15 +71,12 @@ const placeOrderRazorpay = async (req, res) => {
         });
 
     } catch (error) {
-        res.json({
-            success: false,
-            message: error.message
-        });
+         next(error);
     }
 };
 
 // 2. Verify Razorpay payment
-const verifyRazorpay = async (req, res) => {
+const verifyRazorpay = async (req, res,next) => {
     try {
         const { userId, razorpay_order_id } = req.body;
 
@@ -82,45 +108,40 @@ const verifyRazorpay = async (req, res) => {
         }
 
     } catch (error) {
-        res.json({
-            success: false,
-            message: error.message
-        });
+        next(error);
     }
 };
 //user orders for frontend
-const userOrders=async(req,res)=>{
+const userOrders=async(req,res,next)=>{
     try {
         const orders=await orderModel.find({userId:req.body.userId})
         res.json({success:true,data:orders})
     } catch (error) {
-        res.json({success:false,message:"error"})
+         next(error);
     }
 
 }
 
 //listing order for admin panel
 
-const listOrders=async(req,res)=>{
+const listOrders=async(req,res,next)=>{
 
     try {
         const orders=await orderModel.find({});
         res.json({success:true,data:orders})
     } catch (error) {
-        res.json({success:false,message:error})
-    }
+ next(error);    }
 
 }
 
 //api for updating orderstatus
-const updateStatus=async(req,res)=>{
+const updateStatus=async(req,res,next)=>{
     try {
         await orderModel.findByIdAndUpdate(req.body.orderId,{status:req.body.status})
         res.json({success:true,message:"Status updated"})
         
     } catch (error) {
-        res.json({success:false,message:error})
-    }
+ next(error);    }
 
 }
 

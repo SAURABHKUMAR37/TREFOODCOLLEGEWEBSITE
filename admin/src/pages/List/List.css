@@ -22,3 +22,109 @@
         display: none;
     }
 }
+/* Edit Food Form */
+.edit-form {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid #cacaca;
+    border-radius: 8px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.edit-form h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.edit-form input,
+.edit-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cacaca;
+    border-radius: 4px;
+    outline: none;
+    font-size: 14px;
+}
+
+.edit-form textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus {
+    border-color: tomato;
+}
+
+.edit-form img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.edit-form label {
+    width: fit-content;
+    padding: 8px 14px;
+    background-color: #f2f2f2;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: tomato;
+    color: white;
+    font-size: 14px;
+}
+
+.edit-form button:hover {
+    opacity: 0.85;
+}
+@media (max-width: 600px) {
+    .edit-form {
+        width: 100%;
+        max-width: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+
+    .edit-form input,
+    .edit-form textarea {
+        box-sizing: border-box;
+    }
+
+    .edit-form button {
+        width: 100%;
+    }
+}
+@media (max-width: 600px) {
+    .list-table-format {
+        grid-template-columns: 0.7fr 2fr 1fr;
+        gap: 8px;
+        padding: 10px;
+        font-size: 12px;
+        min-width: 0;
+    }
+
+    .list-table-format > * {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .list-table-format img {
+        width: 40px;
+    }
+
+    .list-table-format.title {
+        display: none;
+    }
+}

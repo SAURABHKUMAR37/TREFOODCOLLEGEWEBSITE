@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 // admin login
-const adminLogin = async (req, res) => {
+const adminLogin = async (req, res,next) => {
   try {
     const { email, password } = req.body;
 
@@ -27,8 +27,7 @@ const adminLogin = async (req, res) => {
     // 4. wrong email or password
     return res.json({ success: false, message: "Invalid admin credentials" });
   } catch (error) {
-    console.log(error);
-    return res.json({ success: false, message: "Error" });
+    next(error)
   }
 };
 

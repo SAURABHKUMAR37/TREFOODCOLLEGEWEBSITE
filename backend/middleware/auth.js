@@ -1,21 +1,39 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import userModel from "../models/userModel.js";
 
-const authMiddleware=async(req,res,next)=>{
-    const {token}=req.headers;
-    if(!token)
-    {
-        return res.json({success:false,message:"not authorized login again"})
+const authMiddleware = async (req, res, next) => {
+    const { token } = req.headers;
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Not authorized. Please login again."
+        });
     }
+
     try {
+        const token_decode = jwt.verify(token, process.env.JWT_SECRET);
 
-        const token_decode=jwt.verify(token,process.env.JWT_SECRET);
-         req.body = req.body || {};
-        req.body.userId=token_decode.id;
+        const user = await userModel.findById(token_decode.id);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User account no longer exists"
+            });
+        }
+
+        req.body = req.body || {};
+        req.body.userId = token_decode.id;
+
         next();
-        
-    } catch (error) {
-        res.json({success:false,message:"Error yes"})
-    }
 
-}
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token."
+        });
+    }
+};
+
 export default authMiddleware;
