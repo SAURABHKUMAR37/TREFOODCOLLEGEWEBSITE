@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { connectCloudinary } from "./config/cloudinary.js";
 dotenv.config();
 const app = express();
 const allowedOrigins = (
@@ -27,7 +28,6 @@ const port = process.env.PORT || 4002;
 app.use(express.json());
 
 app.use("/api/food", foodRouter);
-app.use("/images", express.static("uploads"));
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order/", orderRouter);
@@ -40,6 +40,7 @@ app.get("/", (req, res) => {
 
 const startServer = async () => {
   try {
+      await connectCloudinary();
     await connectDB();
 
     app.listen(port, () => {

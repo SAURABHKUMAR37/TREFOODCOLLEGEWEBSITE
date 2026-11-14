@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const foodSchema = new mongoose.Schema({
@@ -18,7 +19,14 @@ const foodSchema = new mongoose.Schema({
     required: true,
     min: [0.01, "Price must be greater than zero"],
   },
-  image: { type: String, required: true },
+  image: {
+    type: String,
+    required: true,
+  },
+  imagePublicId: {
+    type: String,
+    default: "",
+  },
   category: {
     type: String,
     required: true,
@@ -27,4 +35,5 @@ const foodSchema = new mongoose.Schema({
 });
 
 const foodModel = mongoose.models.food || mongoose.model("food", foodSchema);
+
 export default foodModel;
