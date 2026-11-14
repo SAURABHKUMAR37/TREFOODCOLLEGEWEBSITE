@@ -4,18 +4,10 @@ import cors from "cors";
 import { connectCloudinary } from "./config/cloudinary.js";
 dotenv.config();
 const app = express();
-const allowedOrigins = (
-  process.env.CLIENT_URLS || "http://localhost:5173,http://localhost:5174"
-)
-  .split(",")
-  .map((o) => o.trim());
-
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  }),
-);
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
